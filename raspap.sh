@@ -100,5 +100,40 @@ else
 	echo "Could not find ""/etc/dnsmasq.conf"". Try to manually apt-get install dnsmasq.conf "
 fi
 
+read -p "Enter access point (Raspberry Pi) SSID. " ssid			
+read -p "Enter access point (Raspberry Pi) Password. " password		
+			
+echo -e "\ninterface=wlan0\ndriver=nl80211\nssid=$ssid\nhw_mode=g\nchannel=7\nwmm_enabled=0\nmacaddr_acl=0\nauth_algs=1\nignore_broadcast_ssid=0\nwpa=2\nwpa_passphrase=$password\nwpa_key_mgmt=WPA-PSK\nwpa_pairwise=TKIP\nrsn_pairwise=CCMP\n" >> /etc/hostapd/hostapd.conf		
+echo -e "\ninterface wlan0\n   static ip_address=$ip/24\n   nohook wpa_supplicant">> /etc/dhcpcd.conf
+echo -e "DAEMON_CONF="/etc/hostapd/hostapd.conf"">> /etc/default/hostapd			
 
+systemctl start hostapd
+systemctl start dnsmasq
 
+echo -e "\nnet.ipv4.ip_forward=1">> /etc/sysctl.conf
+
+iptables -t nat -A  POSTROUTING -o eth0 -j MASQUERADE
+sh -c "iptables-save > /etc/iptables.ipv4.nat"
+
+sed -i 's/exit\ 0/iptables-save\ \>\ \/etc\/iptables.ipv4.nat\nexit\ 0/' /etc/rc.local 
+
+while true
+	do
+		read -p "A reboot is necessary. Do it now? [Y/n]? " answer
+		case $answer in
+			[yY] ) reboot now
+			break;;
+			[nN] )
+			while true
+				do
+					read -p "Are you sure that you do not want to reboot now[Y/n]?" answer2
+					case $answer2 in
+						[yY] ) exit;;
+						[nN] ) break;;
+						* ) echo -e "Enter just Y or N, please.";
+					esac
+				done;;
+
+			* ) echo -e "Enter just Y or N, please.";
+		esac
+	done
