@@ -95,7 +95,7 @@ if [ -e /etc/dnsmasq.conf ]; then
 	ipStart=$((${ip[3]}+1))
 	ipEnd=$((${ip[3]}+20))
 	
-	echo -e "\ninterface=wlan0\n   wlan0\n   dhcp-range=${ip[0]}.${ip[1]}.${ip[2]}.$ipStart,${ip[0]}.${ip[1]}.${ip[2]}.$ipEnd,255.255.255.0,24h">> /etc/dnsmasq.conf
+	echo -e "\ninterface=wlan0\n    dhcp-range=${ip[0]}.${ip[1]}.${ip[2]}.$ipStart,${ip[0]}.${ip[1]}.${ip[2]}.$ipEnd,255.255.255.0,24h">> /etc/dnsmasq.conf
 else
 	echo "Could not find ""/etc/dnsmasq.conf"". Try to manually apt-get install dnsmasq.conf "
 fi
@@ -104,8 +104,7 @@ read -p "Enter access point (Raspberry Pi) SSID. " ssid
 read -p "Enter access point (Raspberry Pi) Password. " password		
 			
 echo -e "\ninterface=wlan0\ndriver=nl80211\nssid=$ssid\nhw_mode=g\nchannel=7\nwmm_enabled=0\nmacaddr_acl=0\nauth_algs=1\nignore_broadcast_ssid=0\nwpa=2\nwpa_passphrase=$password\nwpa_key_mgmt=WPA-PSK\nwpa_pairwise=TKIP\nrsn_pairwise=CCMP\n" >> /etc/hostapd/hostapd.conf		
-echo -e "\ninterface wlan0\n   static ip_address=$ip/24\n   nohook wpa_supplicant">> /etc/dhcpcd.conf
-echo -e "DAEMON_CONF="/etc/hostapd/hostapd.conf"">> /etc/default/hostapd			
+echo -e "DAEMON_CONF=""/etc/hostapd/hostapd.conf""">> /etc/default/hostapd			
 
 systemctl start hostapd
 systemctl start dnsmasq
