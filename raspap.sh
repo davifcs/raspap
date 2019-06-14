@@ -7,19 +7,28 @@ dnsmasq_status=$(dpkg-query -f '${Status}' -W dnsmasq);
 hostapd_status=$(dpkg-query -f '${Status}' -W hostapd);
 
 function validateIP()
-        {
-         local ip=$1
-         local stat=1
-         if [[ $ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-                OIFS=$IFS
-                IFS='.'
-                ip=($ip)
-                IFS=$OIFS
-                [[ ${ip[0]} -le 255 && ${ip[1]} -le 255 \
-                && ${ip[2]} -le 255 && ${ip[3]} -le 255 ]]
-                stat=$?
-        fi        
-        return $stat
+{
+		local ip=$1
+		local stat=1
+		if [[ $ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+			OIFS=$IFS
+			IFS='.'
+			ip=($ip)
+			IFS=$OIFS
+			[[ ${ip[0]} -le 255 && ${ip[1]} -le 255 \
+			&& ${ip[2]} -le 255 && ${ip[3]} -le 255 ]]
+			stat=$?
+	fi        
+	return $stat
+}
+
+function validadePassword()
+{	
+	if [${#password} -gt 7]; then
+		stat=true
+	fi        
+	return $stat
+
 }
 
 if [ "$dnsmasq_status" == "install ok installed" ]; then
@@ -100,12 +109,23 @@ else
 	echo "Could not find ""/etc/dnsmasq.conf"". Try to manually apt-get install dnsmasq.conf "
 fi
 
-read -p "Enter access point (Raspberry Pi) SSID. " ssid			
-read -p "Enter access point (Raspberry Pi) Password. " password		
+read -p "Enter access point (Raspberry Pi) SSID. " ssid	
+while true
+	do
+		read -p "Enter access point (Raspberry Pi) 8 characters Password. " password			
+		validatePassword $password		
+		if [[ $? -ne 0 ]]; then
+			echo -e "$ip is not a valid password, please enter a valid one."		
+		else								
+			break
+		fi
+	done	
 			
 echo -e "\ninterface=wlan0\ndriver=nl80211\nssid=$ssid\nhw_mode=g\nchannel=7\nwmm_enabled=0\nmacaddr_acl=0\nauth_algs=1\nignore_broadcast_ssid=0\nwpa=2\nwpa_passphrase=$password\nwpa_key_mgmt=WPA-PSK\nwpa_pairwise=TKIP\nrsn_pairwise=CCMP\n" >> /etc/hostapd/hostapd.conf		
 echo -e "DAEMON_CONF=""/etc/hostapd/hostapd.conf""">> /etc/default/hostapd			
 
+systemctl unmask hostapd
+systemctl enable hostapd
 systemctl start hostapd
 systemctl start dnsmasq
 
