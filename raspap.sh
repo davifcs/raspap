@@ -8,27 +8,27 @@ hostapd_status=$(dpkg-query -f '${Status}' -W hostapd);
 
 function validateIP()
 {
-		local ip=$1
-		local stat=1
-		if [[ $ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-			OIFS=$IFS
-			IFS='.'
-			ip=($ip)
-			IFS=$OIFS
-			[[ ${ip[0]} -le 255 && ${ip[1]} -le 255 \
-			&& ${ip[2]} -le 255 && ${ip[3]} -le 255 ]]
-			stat=$?
+	local ip=$1
+	local stat=1
+	if [[ $ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+		OIFS=$IFS
+		IFS='.'
+		ip=($ip)
+		IFS=$OIFS
+		[[ ${ip[0]} -le 255 && ${ip[1]} -le 255 \
+		&& ${ip[2]} -le 255 && ${ip[3]} -le 255 ]]
+		stat=$?
 	fi        
 	return $stat
 }
 
 function validadePassword()
 {	
-	if [${#password} -gt 7]; then
-		stat=true
+	local stat=1
+	if [ ${#password} -ge 7 ]; then
+		stat=0
 	fi        
 	return $stat
-
 }
 
 if [ "$dnsmasq_status" == "install ok installed" ]; then
