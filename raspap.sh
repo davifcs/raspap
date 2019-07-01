@@ -1,6 +1,11 @@
 #!/bin/bash
 #RaspAP is intented to configure the RaspberryPi 3 as an access point.
 
+if [ "$EUID" -ne 0 ]; then
+   echo "Run this script as root only"
+   exit 1
+fi
+
 declare -i valid=0
 declare -i ipclass=0
 dnsmasq_status=$(dpkg-query -f '${Status}' -W dnsmasq);
@@ -113,9 +118,9 @@ read -p "Enter access point (Raspberry Pi) SSID. " ssid
 while true
 	do
 		read -p "Enter access point (Raspberry Pi) 8 characters Password. " password			
-		validatePassword $password		
+		validadePassword $password		
 		if [[ $? -ne 0 ]]; then
-			echo -e "$ip is not a valid password, please enter a valid one."		
+			echo -e "$password is not a valid password, please enter a valid one."		
 		else								
 			break
 		fi
